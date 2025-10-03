@@ -69,7 +69,7 @@ class AdminNotificationService:
             return await get_promo_group_by_id(db, user.promo_group_id)
         except Exception as e:
             logger.error(
-                "Failed to load promo group %s for user %s: %s",
+                "Ошибка загрузки промогруппы %s пользователя %s: %s",
                 user.promo_group_id,
                 user.telegram_id,
                 e,
