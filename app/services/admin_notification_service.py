@@ -50,8 +50,8 @@ class AdminNotificationService:
             return f"ID {referred_by_id}"
 
     async def _get_user_promo_group(self, db: AsyncSession, user: User) -> Optional[PromoGroup]:
-        if getattr(user, "promo_group", None):
-            return user.promo_group
+        if "promo_group" in user.__dict__:
+            return user.__dict__["promo_group"]
 
         if not user.promo_group_id:
             return None
@@ -59,23 +59,22 @@ class AdminNotificationService:
         try:
             await db.refresh(user, attribute_names=["promo_group"])
         except Exception:
-            # relationship might not be available — fallback to direct fetch
+            # Refresh may fail if relationship is not configured; fallback to manual fetch.
             pass
-
-        if getattr(user, "promo_group", None):
-            return user.promo_group
+        else:
+            if "promo_group" in user.__dict__:
+                return user.__dict__["promo_group"]
 
         try:
             return await get_promo_group_by_id(db, user.promo_group_id)
         except Exception as e:
             logger.error(
-                "Ошибка загрузки промогруппы %s пользователя %s: %s",
+                "Failed to load promo group %s for user %s: %s",
                 user.promo_group_id,
                 user.telegram_id,
                 e,
             )
             return None
-
     def _format_promo_group_discounts(self, promo_group: PromoGroup) -> List[str]:
         discount_lines: List[str] = []
 
